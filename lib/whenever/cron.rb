@@ -8,16 +8,11 @@ module Whenever
 
       attr_accessor :time, :task, :job
 
-      def initialize(time = nil, thing = nil, at = nil)
+      def initialize(time = nil, job = nil, at = nil)
         @at_given = at
         @time = time
-        if thing.is_a?(Whenever::Job)
-          @task = thing.output
-          @job = thing
-        else
-          @task = thing
-        end
-
+        @task = job && job.output
+        @job = job
         @at   = at.is_a?(String) ? (Chronic.parse(at) || 0) : (at || 0)
       end
 

@@ -230,24 +230,24 @@ class CronTest < Test::Unit::TestCase
 private
 
   def assert_days_and_hours_and_minutes_equals(expected, time)
-    cron = parse_time(2.months, 'some task', time)
+    cron = parse_time(2.months, nil, time)
     minutes, hours, days, *garbage = cron.split(' ')
     assert_equal expected, [days, hours, minutes]
   end
 
   def assert_hours_and_minutes_equals(expected, time)
-    cron = parse_time(2.days, 'some task', time)
+    cron = parse_time(2.days, nil, time)
     minutes, hours, *garbage = cron.split(' ')
     assert_equal expected, [hours, minutes]
   end
 
   def assert_minutes_equals(expected, time)
-    cron = parse_time(2.hours, 'some task', time)
+    cron = parse_time(2.hours, nil, time)
     assert_equal expected, cron.split(' ')[0]
   end
 
-  def parse_time(time = nil, task = nil, at = nil)
-    Whenever::Output::Cron.new(time, task, at).time_in_cron_syntax
+  def parse_time(time = nil, job = nil, at = nil)
+    Whenever::Output::Cron.new(time, job, at).time_in_cron_syntax
   end
 
 end
