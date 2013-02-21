@@ -108,4 +108,47 @@ class OutputDefinedJobTest < Test::Unit::TestCase
     end
   end
 
+  context "A defined job nested within another job" do
+    setup do
+      @output = Whenever.cron \
+      <<-file
+        set :job_template, nil
+        job_type :some_job, "before :task after"
+        every 2.hours do
+          some_job "during" do
+            some_job "then" do
+              some_job "else"
+            end
+          end
+        end
+      file
+    end
+
+    should "output the defined job with the task" do
+      @output.inspect
+      assert_match /^.+ .+ .+ .+ before during after && before then after && before else after$/, @output
+    end
+  end
+
+  context "A defined job nested within another job using diffrent templates and job types" do
+    setup do
+      @output = Whenever.cron \
+      <<-file
+        set :job_template, "|:job|"
+        job_type :some_job, "before :task after"
+        every 2.hours do
+          some_job "during" do
+            set :job_template, "-:job-"
+            job_type :another_job, "first :task last"
+            another_job "then"
+          end
+        end
+      file
+    end
+
+    should "output the defined job with the task" do
+      @output.inspect
+      assert_match /^.+ .+ .+ .+ \|before during after\| && -first then last-$/, @output
+    end
+  end
 end

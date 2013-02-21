@@ -3,7 +3,8 @@ require 'shellwords'
 module Whenever
   class Job
     attr_reader :at, :roles
-
+    attr_accessor :nested
+    
     def initialize(options = {})
       @options = options
       @at                      = options.delete(:at)

@@ -46,7 +46,7 @@ module Whenever
 
     def job_type(name, template)
       class_eval do
-        define_method(name) do |task, *args|
+        define_method(name) do |task, *args, &blk|
           options = { :task => task, :template => template }
           options.merge!(args[0]) if args[0].is_a? Hash
 
@@ -56,7 +56,21 @@ module Whenever
           options[:output] = @output if defined?(@output) && !options.has_key?(:output)
 
           @jobs[@current_time_scope] ||= []
-          @jobs[@current_time_scope] << Whenever::Job.new(@options.merge(@set_variables).merge(options))
+
+          if @job
+            @job.nested = Whenever::Job.new(@options.merge(@set_variables).merge(options))
+            @job = @job.nested
+          elsif
+            @job = Whenever::Job.new(@options.merge(@set_variables).merge(options))
+            @jobs[@current_time_scope] << @job
+          end
+
+          # No more nesting?
+          if not blk
+            @job = nil
+          else
+            blk.call
+          end
         end
       end
     end

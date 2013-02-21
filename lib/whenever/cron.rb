@@ -6,12 +6,18 @@ module Whenever
       KEYWORDS = [:reboot, :yearly, :annually, :monthly, :weekly, :daily, :midnight, :hourly]
       REGEX = /^(@(#{KEYWORDS.join '|'})|.+\s+.+\s+.+\s+.+\s+.+.?)$/
 
-      attr_accessor :time, :task
+      attr_accessor :time, :task, :job
 
-      def initialize(time = nil, task = nil, at = nil)
+      def initialize(time = nil, thing = nil, at = nil)
         @at_given = at
         @time = time
-        @task = task
+        if thing.is_a?(Whenever::Job)
+          @task = thing.output
+          @job = thing
+        else
+          @task = thing
+        end
+
         @at   = at.is_a?(String) ? (Chronic.parse(at) || 0) : (at || 0)
       end
 
@@ -33,13 +39,21 @@ module Whenever
       def self.output(times, job)
         enumerate(times).each do |time|
           enumerate(job.at, false).each do |at|
-            yield new(time, job.output, at).output
+            yield new(time, job, at).output
           end
         end
       end
 
       def output
-        [time_in_cron_syntax, task].compact.join(' ').strip
+        tasks = [task]
+
+        if job and job.nested
+          Cron.output(nil, job.nested) do |output|
+            tasks << output
+          end
+        end
+
+        [time_in_cron_syntax, tasks.join(" && ")].compact.join(" ").strip
       end
 
       def time_in_cron_syntax
