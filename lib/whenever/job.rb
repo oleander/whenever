@@ -7,21 +7,19 @@ module Whenever
     
     def initialize(options = {})
       @options = options
-      @at                      = options.delete(:at)
-      @template                = options.delete(:template)
-      @job_template            = options.delete(:job_template) || ":job"
-      @roles                   = Array.wrap(options.delete(:roles))
-      @options[:output]        = options.has_key?(:output) ? Whenever::Output::Redirection.new(options[:output]).to_s : ''
-      @options[:environment] ||= :production
-      @options[:path]          = Shellwords.shellescape(@options[:path] || Whenever.path)
+      @at                               = options.delete(:at)
+      @template                         = options.delete(:template)
+      @job_template                     = options.delete(:job_template) || ":job"
+      @roles                            = Array.wrap(options.delete(:roles))
+      @options[:output]                 = options.has_key?(:output) ? Whenever::Output::Redirection.new(options[:output]).to_s : ''
+      @options[:environment_variable] ||= "RAILS_ENV"
+      @options[:environment]          ||= :production
+      @options[:path]                   = Shellwords.shellescape(@options[:path] || Whenever.path)
     end
 
     def output
-      job = process_template(@template, @options).strip
-      out = process_template(@job_template, { :job => job }).strip
-      if out =~ /\n/
-        raise ArgumentError, "Task contains newline"
-      end
+      job = process_template(@template, @options)
+      out = process_template(@job_template, @options.merge(:job => job))
       out.gsub(/%/, '\%')
     end
 
@@ -43,7 +41,7 @@ module Whenever
         else
           option
         end
-      end
+      end.squish
     end
 
     def escape_single_quotes(str)

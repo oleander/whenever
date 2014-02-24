@@ -1,6 +1,24 @@
-### 0.9.0 (unreleased)
+### 0.9.0 / December 17, 2013
 
-* Time zone support
+* Capistrano V3 support. [Philip Hallstrom]
+
+* Process params in job templates. [Austin Ziegler]
+
+
+### 0.8.4 / July 22, 2012
+
+* Don't require schedule file when clearing. [Javan Makhmali]
+
+* Use bin/rails when available. [Javan Makhmali]
+
+
+### 0.8.3 / July 11, 2013
+
+* Improve Cap rollback logic. [Jeroen Jacobs]
+
+* Allow configuration of the environment variable. [andfx]
+
+* Output option can be a callable Proc. [Li Xiao]
 
 
 ### 0.8.2 / January 10, 2013

@@ -1,5 +1,5 @@
 require File.expand_path(File.dirname(__FILE__) + "/../test_helper")
-require File.expand_path(File.dirname(__FILE__) + "/../../lib/whenever/capistrano/support")
+require File.expand_path(File.dirname(__FILE__) + "/../../lib/whenever/capistrano/v2/support")
 
 class CapistranoSupportTestSubject
   include Whenever::CapistranoSupport
@@ -75,6 +75,22 @@ class CapistranoSupportTest < Test::Unit::TestCase
         @capistrano.stubs(:role_names_for_host).with("foo").returns([:role1, :role3])
         @capistrano.stubs(:role_names_for_host).with("bar").returns([:role2])
         assert_equal({"foo" => [:role1, :role3], "bar" => [:role2]}, @capistrano.whenever_server_roles)
+      end
+    end
+
+    context "#whenever_prepare_for_rollback" do
+      should "set path to previous_release if there is a previous release" do
+        args = {}
+        @capistrano.stubs(:fetch).with(:previous_release).returns("/some/path/20121221010000")
+        assert_equal({:path => "/some/path/20121221010000"}, @capistrano.whenever_prepare_for_rollback(args))
+      end
+
+      should "set path to release_path and flags to whenever_clear_flags if there is no previous release" do
+        args = {}
+        @capistrano.stubs(:fetch).with(:previous_release).returns(nil)
+        @capistrano.stubs(:fetch).with(:release_path).returns("/some/path/20121221010000")
+        @capistrano.stubs(:fetch).with(:whenever_clear_flags).returns("--clear-crontab whenever_identifier")
+        assert_equal({:path => "/some/path/20121221010000", :flags => "--clear-crontab whenever_identifier"}, @capistrano.whenever_prepare_for_rollback(args))
       end
     end
 

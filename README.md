@@ -73,14 +73,14 @@ The default job types that ship with Whenever are defined like so:
 
 ```ruby
 job_type :command, ":task :output"
-job_type :rake,    "cd :path && RAILS_ENV=:environment bundle exec rake :task --silent :output"
+job_type :rake,    "cd :path && :environment_variable=:environment bundle exec rake :task --silent :output"
 job_type :runner,  "cd :path && script/rails runner -e :environment ':task' :output"
-job_type :script,  "cd :path && RAILS_ENV=:environment bundle exec script/:task :output"
+job_type :script,  "cd :path && :environment_variable=:environment bundle exec script/:task :output"
 ```
 
 Pre-Rails 3 apps and apps that don't use Bundler will redefine the `rake` and `runner` jobs respectively to function correctly.
 
-If a `:path` is not set it will default to the directory in which `whenever` was executed. `:environment` will default to 'production'. `:output` will be replaced with your output redirection settings which you can read more about here: <http://github.com/javan/whenever/wiki/Output-redirection-aka-logging-your-cron-jobs>
+If a `:path` is not set it will default to the directory in which `whenever` was executed. `:environment_variable` will default to 'RAILS_ENV'. `:environment` will default to 'production'. `:output` will be replaced with your output redirection settings which you can read more about here: <http://github.com/javan/whenever/wiki/Output-redirection-aka-logging-your-cron-jobs>
 
 All jobs are by default run with `bash -l -c 'command...'`. Among other things, this allows your cron jobs to play nice with RVM by loading the entire environment instead of cron's somewhat limited environment. Read more: <http://blog.scoutapp.com/articles/2010/09/07/rvm-and-cron-in-production>
 
@@ -98,7 +98,7 @@ set :job_template, nil
 
 ### Capistrano integration
 
-Use the built-in Capistrano recipe for easy crontab updates with deploys.
+Use the built-in Capistrano recipe for easy crontab updates with deploys. For Capistrano V3, see the next section.
 
 In your "config/deploy.rb" file:
 
@@ -106,7 +106,7 @@ In your "config/deploy.rb" file:
 require "whenever/capistrano"
 ```
 
-Take a look at the recipe for options you can set. <http://github.com/javan/whenever/blob/master/lib/whenever/capistrano/recipes.rb>
+Take a look at the recipe for options you can set. <https://github.com/javan/whenever/blob/master/lib/whenever/capistrano/v2/recipes.rb>
 For example, if you're using bundler do this:
 
 ```ruby
@@ -129,6 +129,28 @@ If both your environments are on the same server you'll want to namespace them o
 set :whenever_environment, defer { stage }
 set :whenever_identifier, defer { "#{application}_#{stage}" }
 require "whenever/capistrano"
+```
+
+### Capistrano V3 Integration
+
+In your "Capfile" file:
+
+```ruby
+require "whenever/capistrano"
+```
+
+If you're using bundler do this.  **DO NOT** set ':whenever_command' to 'bundle exec whenever'.  It will **NOT** work.
+By default, 'bundle exec whenever' will be called.  If you need something different and the command contains a space
+you will need to map it via the following method.  This is an issue with SSHKit.
+
+```ruby
+SSHKit.config.command_map[:whenever] = "bundle exec whenever"
+```
+
+Take a look at the load:defaults (bottom of file) task for options you can set. <http://github.com/javan/whenever/blob/master/lib/whenever/tasks/whenever.rake>. For example, to namespace the crontab entries by application and stage do this.
+
+```ruby
+set :whenever_identifier, ->{ "#{fetch(:application)}_#{fetch(:stage)}" }
 ```
 
 ### Capistrano roles
@@ -193,7 +215,7 @@ If your production environment uses RVM (Ruby Version Manager) you will run into
 
 `rvm_trust_rvmrcs_flag=1`
 
-This tells rvm to trust all rvmrc files, which is documented here: http://wayneeseguin.beginrescueend.com/2010/08/22/ruby-environment-version-manager-rvm-1-0-0/
+This tells rvm to trust all rvmrc files.
 
 ### The `whenever` command
 
@@ -221,7 +243,7 @@ It's a little bit dated now, but remains a good introduction.
 
 ----
 
-Compatible with Ruby 1.8.7-1.9.3, JRuby, and Rubinius. [![Build Status](https://secure.travis-ci.org/javan/whenever.png)](http://travis-ci.org/javan/whenever)
+Compatible with Ruby 1.8.7-2.1.0, JRuby, and Rubinius. [![Build Status](https://secure.travis-ci.org/javan/whenever.png)](http://travis-ci.org/javan/whenever)
 
 ----
 

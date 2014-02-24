@@ -54,14 +54,13 @@ class JobTest < Test::Unit::TestCase
       assert_equal %q(before percent preceded by a backslash -> \\\% <- after), job.output
     end
 
-    should "reject newlines" do
+    should "squish spaces and newlines" do
       job = new_job(
         :template => "before :foo after",
-        :foo => "newline -> \n <- newline"
+        :foo => "newline -> \n <- newline space ->     <- space"
       )
-      assert_raise ArgumentError do
-        job.output
-      end
+
+      assert_equal "before newline -> <- newline space -> <- space after", job.output
     end
   end
 
@@ -98,6 +97,11 @@ class JobTest < Test::Unit::TestCase
     should "use the job template" do
       job = new_job(:template => ':task', :task => 'abc123', :job_template => 'left :job right')
       assert_equal 'left abc123 right', job.output
+    end
+
+    should "reuse parameter in the job template" do
+      job = new_job(:template => ':path :task', :path => 'path', :task => "abc123", :job_template => ':path left :job right')
+      assert_equal 'path left path abc123 right', job.output
     end
 
     should "escape single quotes" do

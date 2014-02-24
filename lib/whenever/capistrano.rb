@@ -1,8 +1,7 @@
-require "whenever/capistrano/recipes"
+require 'capistrano/version'
 
-Capistrano::Configuration.instance(:must_exist).load do
-  # Write the new cron jobs near the end.
-  before "deploy:finalize_update", "whenever:update_crontab"
-  # If anything goes wrong, undo.
-  after "deploy:rollback", "whenever:update_crontab"
+if defined?(Capistrano::VERSION) && Gem::Version.new(Capistrano::VERSION).release >= Gem::Version.new('3.0.0')
+  load File.expand_path("../tasks/whenever.rake", __FILE__)
+else
+  require 'whenever/capistrano/v2/hooks'
 end
