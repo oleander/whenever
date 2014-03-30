@@ -46,6 +46,12 @@ every '0 0 27-31 * *' do
   command "echo 'you can use raw cron syntax too'"
 end
 
+every 1.day do
+  rake "statistics:user" do
+    rake "statistics:jobs"
+  end
+end
+
 # run this task only on servers with the :app role in Capistrano
 # see Capistrano roles section below
 every :day, :at => '12:20am', :roles => [:app] do
@@ -94,6 +100,43 @@ Or set the job_template to nil to have your jobs execute normally.
 
 ```ruby
 set :job_template, nil
+```
+
+### Nested jobs
+
+Sometimes you might want to run your jobs in sequence. You can do this 
+by passing a block to your task.
+
+``` ruby
+every 1.day do
+  rake "statistics:user" do
+    rake "statistics:jobs"
+  end
+end
+```
+
+This will first run `statistics:user`, then on success run 
+`statistics:jobs`. You can pass the `halt_on_failure` option if you want 
+to run `statistics:jobs` without relying on the success of 
+`statistics:user`.
+
+``` ruby
+every 1.day do
+  rake "statistics:user", halt_on_failure: false do
+    rake "statistics:jobs"
+  end
+end
+```
+
+Note that parallel nested blocks is **not** supported.
+
+``` ruby
+every 1.day do
+  rake "statistics:user" do
+    rake "statistics:jobs"
+    rake "statistics:stuff"
+  end
+end
 ```
 
 ### Capistrano integration
