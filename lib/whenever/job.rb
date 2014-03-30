@@ -1,12 +1,13 @@
 require 'shellwords'
 
-module Whenever
+module Whenever  
   class Job
     attr_reader :at, :roles
+    attr_writer :used
     attr_accessor :nested
     
     def initialize(options = {})
-      @options = options
+      @options                          = options
       @at                               = options.delete(:at)
       @template                         = options.delete(:template)
       @job_template                     = options.delete(:job_template) || ":job"
@@ -15,6 +16,14 @@ module Whenever
       @options[:environment_variable] ||= "RAILS_ENV"
       @options[:environment]          ||= :production
       @options[:path]                   = Shellwords.shellescape(@options[:path] || Whenever.path)
+    end
+
+    def halt_on_failure?
+      @options.fetch(:halt_on_failure, true)
+    end
+
+    def used?
+      @used
     end
 
     def output

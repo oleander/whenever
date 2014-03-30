@@ -1,5 +1,4 @@
 require 'chronic'
-
 module Whenever
   module Output
     class Cron
@@ -47,8 +46,9 @@ module Whenever
             tasks << output
           end
         end
+        joiner = job.halt_on_failure? ? " && " : " ; "
 
-        [time_in_cron_syntax, tasks.join(" && ")].compact.join(" ").strip
+        [time_in_cron_syntax, tasks.join(joiner)].compact.join(" ").strip
       end
 
       def time_in_cron_syntax

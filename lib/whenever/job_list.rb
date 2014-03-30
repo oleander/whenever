@@ -1,4 +1,7 @@
 module Whenever
+  class ParallelJobsNotSupportedError < StandardError
+  end
+
   class JobList
     attr_reader :roles
 
@@ -57,18 +60,29 @@ module Whenever
 
           @jobs[@current_time_scope] ||= []
 
-          if @job
-            @job.nested = Whenever::Job.new(@options.merge(@set_variables).merge(options))
-            @job = @job.nested
-          elsif
-            @job = Whenever::Job.new(@options.merge(@set_variables).merge(options))
-            @jobs[@current_time_scope] << @job
+          if @master
+            if @master.used?
+              raise Whenever::ParallelJobsNotSupportedError.new(%Q{
+                has already been used by #{@master}
+              })
+            end
+
+            @master.used = true
           end
 
-          # No more nesting?
-          if not blk
-            @job = nil
+          current_job = 
+            Whenever::Job.new(@options.merge(@set_variables).merge(options))
+
+          if @previous_job
+            @previous_job.nested = current_job
           else
+            @jobs[@current_time_scope] << current_job
+          end
+
+          @previous_job = current_job
+
+          if blk
+            @master = current_job
             blk.call
           end
         end

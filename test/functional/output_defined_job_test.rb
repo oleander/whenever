@@ -130,6 +130,68 @@ class OutputDefinedJobTest < Test::Unit::TestCase
     end
   end
 
+  context "A defined job nested within another job (halt_on_failure)" do
+    setup do
+      @output = Whenever.cron \
+      <<-file
+        set :job_template, nil
+        job_type :some_job, "before :task after"
+        every 2.hours do
+          some_job "during", halt_on_failure: false do
+            some_job "then" do
+              some_job "else"
+            end
+          end
+        end
+      file
+    end
+
+    should "output the defined job with the task" do
+      @output.inspect
+      assert_match /^.+ .+ .+ .+ before during after ; before then after && before else after$/, @output
+    end
+  end
+
+  context "A defined job nested within another job twice should fail" do
+    should "raise error" do
+      input = <<-file
+        set :job_template, nil
+        job_type :some_job, "before :task after"
+        every 2.hours do
+          some_job "during" do
+            some_job "then"
+            some_job "else"
+          end
+        end
+      file
+
+      assert_raise(Whenever::ParallelJobsNotSupportedError) do 
+        Whenever.cron(input)
+      end
+    end
+
+    should "raise error when using block" do
+      input = <<-file
+        set :job_template, nil
+        job_type :some_job, "before :task after"
+        every 2.hours do
+          some_job "during" do
+            some_job "then" do
+              some_job "other 1" do
+                some_job "other 2"
+              end
+            end
+            some_job "else"
+          end
+        end
+      file
+
+      assert_raise(Whenever::ParallelJobsNotSupportedError) do 
+        Whenever.cron(input)
+      end
+    end
+  end
+
   context "A defined job nested within another job using diffrent templates and job types" do
     setup do
       @output = Whenever.cron \
