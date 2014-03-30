@@ -1,3 +1,17 @@
+### 0.9.2 / March 4, 2014
+
+* Fix issues generating arguments for `execute` in Capistrano 3 tasks. [Javan Makhmali]
+
+
+### 0.9.1 / March 2, 2014
+
+* Pass `--roles` option to `whenever` in Capistrano 3 tasks. [betesh, Javan Makhmali]
+
+* Allow setting `:whenever_command` for Capistrano 3. [Javan Makhmali]
+
+* Allow `:whenever` command to be mapped in SSHKit. [Javan Makhmali]
+
+
 ### 0.9.0 / December 17, 2013
 
 * Capistrano V3 support. [Philip Hallstrom]
