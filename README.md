@@ -128,7 +128,20 @@ every 1.day do
 end
 ```
 
-Note that parallel nested blocks is **not** supported.
+You can also pass the `halt_on_failure` option directly to `every`. 
+This will enforce the execution of all jobs even if one of them fails.
+
+``` ruby
+every 1.day, halt_on_failure: true do
+  rake "statistics:user" do
+    rake "statistics:jobs" do
+      rake "statistics:stuff"
+    end
+  end
+end
+```
+
+Note that parallel nested blocks **aren't** supported.
 
 ``` ruby
 every 1.day do

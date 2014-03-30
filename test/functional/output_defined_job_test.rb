@@ -130,7 +130,7 @@ class OutputDefinedJobTest < Test::Unit::TestCase
     end
   end
 
-  context "A defined job nested within another job (halt_on_failure)" do
+  context "A defined job nested within another job and not halt on failure (on #task)" do
     setup do
       @output = Whenever.cron \
       <<-file
@@ -149,6 +149,28 @@ class OutputDefinedJobTest < Test::Unit::TestCase
     should "output the defined job with the task" do
       @output.inspect
       assert_match /^.+ .+ .+ .+ before during after ; before then after && before else after$/, @output
+    end
+  end
+
+  context "A defined job nested within another job and not halt on failure (on #every)" do
+    setup do
+      @output = Whenever.cron \
+      <<-file
+        set :job_template, nil
+        job_type :some_job, "before :task after"
+        every 2.hours, halt_on_failure: false do
+          some_job "during" do
+            some_job "then" do
+              some_job "else"
+            end
+          end
+        end
+      file
+    end
+
+    should "output the defined job with the task" do
+      @output.inspect
+      assert_match /^.+ .+ .+ .+ before during after ; before then after ; before else after$/, @output
     end
   end
 
