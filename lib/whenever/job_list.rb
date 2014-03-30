@@ -81,9 +81,12 @@ module Whenever
 
           @previous_job = current_job
 
+          # Nested jobs?
           if blk
             @master = current_job
             blk.call
+          else
+            @previous_job = nil
           end
         end
       end
